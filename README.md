@@ -1,3 +1,3 @@
 <p>
-  The Freeswitch module provides a quite unified way using TTS engines over HTTP
+  TTS module that allows to work with text-to-speech tools over http. 
 </p>
