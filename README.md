@@ -1,7 +1,8 @@
 <p>
   TTS module that allows to work with text-to-speech tools over http. <br>
   The backend should be able to process POST requests with json payload: { "language": "en", "text" : "Some text to tts" , [speak extra args may follow here] } <br>
-  The response should be one of the types: audio/mpeg for mp3 and audio/wav for wav respectively.
+  The response should be one of the types: audio/mpeg for mp3 and audio/wav for wav respectively. <br>
+  Designed to work in tandem with <a href="https://github.com/akscf/ttsd">ttsd</a>
 </p>
 
 ### Usage example
