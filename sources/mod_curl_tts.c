@@ -46,6 +46,7 @@ static switch_status_t speech_open(switch_speech_handle_t *sh, const char *voice
     tts_ctx->channels = channels;
     tts_ctx->api_url = globals.api_url;
     tts_ctx->api_key = globals.api_key;
+    tts_ctx->fl_cache_enabled = globals.fl_cache_enabled;
 
     sh->private_info = tts_ctx;
 
@@ -75,7 +76,7 @@ static switch_status_t speech_close(switch_speech_handle_t *sh, switch_speech_fl
         switch_buffer_destroy(&tts_ctx->curl_recv_buffer);
     }
 
-    if(!globals.fl_cache_enabled) {
+    if(!tts_ctx->fl_cache_enabled) {
         if(tts_ctx->mp3_name) unlink(tts_ctx->mp3_name);
         if(tts_ctx->wav_name) unlink(tts_ctx->wav_name);
     }
@@ -91,17 +92,28 @@ static switch_status_t speech_feed_tts(switch_speech_handle_t *sh, char *text, s
     tts_ctx_t *tts_ctx = (tts_ctx_t *)sh->private_info;
     switch_status_t status = SWITCH_STATUS_SUCCESS;
     char digest[SWITCH_MD5_DIGEST_STRING_SIZE + 1] = { 0 };
+    char uuid[SWITCH_UUID_FORMATTED_LENGTH + 1] = { 0 };
     const void *ptr = NULL;
     uint32_t recv_len = 0;
 
     assert(tts_ctx != NULL);
 
-    switch_md5_string(digest, (void *)text, strlen(text));
-    if(!tts_ctx->mp3_name) {
-        tts_ctx->mp3_name = switch_core_sprintf(sh->memory_pool, "%s%s%s.mp3", globals.cache_path, SWITCH_PATH_SEPARATOR, digest);
-    }
-    if(!tts_ctx->wav_name) {
-        tts_ctx->wav_name = switch_core_sprintf(sh->memory_pool, "%s%s%s.wav", globals.cache_path, SWITCH_PATH_SEPARATOR, digest);
+    if(tts_ctx->fl_cache_enabled) {
+        switch_md5_string(digest, (void *)text, strlen(text));
+        if(!tts_ctx->mp3_name) {
+            tts_ctx->mp3_name = switch_core_sprintf(sh->memory_pool, "%s%s%s.mp3", globals.cache_path, SWITCH_PATH_SEPARATOR, digest);
+        }
+        if(!tts_ctx->wav_name) {
+            tts_ctx->wav_name = switch_core_sprintf(sh->memory_pool, "%s%s%s.wav", globals.cache_path, SWITCH_PATH_SEPARATOR, digest);
+        }
+    } else {
+        switch_uuid_str((char *)uuid, sizeof(uuid));
+        if(!tts_ctx->mp3_name) {
+            tts_ctx->mp3_name = switch_core_sprintf(sh->memory_pool, "%s%s%s.mp3", globals.tmp_path, SWITCH_PATH_SEPARATOR, uuid);
+        }
+        if(!tts_ctx->wav_name) {
+            tts_ctx->wav_name = switch_core_sprintf(sh->memory_pool, "%s%s%s.wav", globals.tmp_path, SWITCH_PATH_SEPARATOR, uuid);
+        }
     }
 
     if(switch_file_exists(tts_ctx->mp3_name, tts_ctx->pool) == SWITCH_STATUS_SUCCESS) {
@@ -202,8 +214,10 @@ static void speech_text_param_tts(switch_speech_handle_t *sh, char *param, const
         if(val) tts_ctx->api_key = switch_core_strdup(sh->memory_pool, val);
     } else if(strcasecmp(param, "language") == 0) {
         if(val) tts_ctx->api_key = switch_core_strdup(sh->memory_pool, val);
+    } else if(strcasecmp(param, "cache") == 0) {
+        if(val) tts_ctx->fl_cache_enabled = switch_true(val);
     } else if(strcasecmp(param, "text") == 0) {
-        // reserved (ignore)
+        // reserved
     } else {
         if(tts_ctx->curl_params && val) {
             switch_core_hash_insert(tts_ctx->curl_params, param, switch_core_strdup(sh->memory_pool, val));

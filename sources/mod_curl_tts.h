@@ -25,7 +25,7 @@
 #include <switch.h>
 #include <switch_curl.h>
 
-#define MOD_VERSION         "1.0.0"
+#define MOD_VERSION         "1.0.1"
 #define MOD_CONFIG_NAME     "curl_tts.conf"
 #define FILE_SIZE_MAX       (2*1024*1024)
 
@@ -61,6 +61,7 @@ typedef struct {
     uint32_t                samplerate;
     uint32_t                channels;
     size_t                  curl_send_buffer_len;
+    uint8_t                 fl_cache_enabled;
 } tts_ctx_t;
 
 
