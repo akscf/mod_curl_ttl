@@ -1,9 +1,9 @@
 <p>
-  TTS module allows to work with text-to-speech tools over http. <br>
+  This module allows to work with text-to-speech tools over http. <br>
   Designed to work in tandem with <a href="https://github.com/akscf/ttsd">ttsd</a>
 </p>
 
-### Brief details about backend
+### Few words about backend
 <p>
     The payload encoded with JSON and carries over POST method, with the following format: { "language": "en", "text": "Some text to tts"} <br>
     There are two mandatory attribures, language and text, the tts custom parameters will be attached after ones. <br>
